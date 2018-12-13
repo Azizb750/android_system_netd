@@ -53,7 +53,7 @@ auto RouteController::iptablesRestoreCommandFunction = execIptablesRestoreComman
 // BEGIN CONSTANTS --------------------------------------------------------------------------------
 
 const uint32_t RULE_PRIORITY_VPN_OVERRIDE_SYSTEM = 10000;
-const uint32_t RULE_PRIORITY_VPN_OVERRIDE_OIF    = 10500;
+/*const uint32_t RULE_PRIORITY_VPN_OVERRIDE_OIF    = 10500;*/
 const uint32_t RULE_PRIORITY_VPN_OUTPUT_TO_LOCAL = 11000;
 const uint32_t RULE_PRIORITY_SECURE_VPN          = 12000;
 const uint32_t RULE_PRIORITY_PROHIBIT_NON_VPN    = 12500;
@@ -555,17 +555,6 @@ WARN_UNUSED_RESULT int modifyOutputInterfaceRules(const char* interface, uint32_
 
     fwmark.permission = permission;
     mask.permission = permission;
-
-    // If this rule does not specify a UID range, then also add a corresponding high-priority rule
-    // for root. This covers kernel-originated packets, TEEd packets and any local daemons that open
-    // sockets as root.
-    if (uidStart == INVALID_UID && uidEnd == INVALID_UID) {
-        if (int ret = modifyIpRule(add ? RTM_NEWRULE : RTM_DELRULE, RULE_PRIORITY_VPN_OVERRIDE_OIF,
-                                   table, FWMARK_NONE, MASK_NONE, IIF_LOOPBACK, interface,
-                                   UID_ROOT, UID_ROOT)) {
-            return ret;
-        }
-    }
 
     return modifyIpRule(add ? RTM_NEWRULE : RTM_DELRULE, RULE_PRIORITY_OUTPUT_INTERFACE, table,
                         fwmark.intValue, mask.intValue, IIF_LOOPBACK, interface, uidStart, uidEnd);
